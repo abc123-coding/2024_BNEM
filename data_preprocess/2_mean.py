@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 
+
 # read .csv file
 df = pd.read_csv('sorted.csv')
 
