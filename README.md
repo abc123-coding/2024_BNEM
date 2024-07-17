@@ -22,3 +22,6 @@ The project aims to establish an AI model to predict the FRET value.
 
 # 3. jul_02
    Plot the violin and strip graph to visualize the difference of FRET when 1 base changes.
+
+# 4. jul_16
+   Apply LASSO for weights pruning for find meaningful features.
