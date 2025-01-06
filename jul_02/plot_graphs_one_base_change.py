@@ -36,7 +36,7 @@ def sort_out_FRET_on_basis_of_sequence(df, solution):
     for key, value in zip(seq, fret):
         if key not in dict:
             dict[key] = []
-        if value < 1: # rule out error
+        if 0 < value < 1: # rule out error
             dict[key].append(value)
     return dict
 
