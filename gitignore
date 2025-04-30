@@ -1,0 +1,14 @@
+.idea
+.ipynb_checkpoints
+
+# Data
+**/*.csv
+**/*.xlsx
+**/*.png
+
+# Model
+**/*.h5
+**/*.keras
+
+# Virtual Env
+venv
