@@ -6,16 +6,20 @@ from sklearn.metrics import mean_absolute_error, r2_score, mean_squared_error
 from sklearn.model_selection import train_test_split
 
 
+sol = ['N5', 'N50', 'N500', 'N5M10', 'N5M100']
+base = ['A', 'C', 'G', 'T']
+
+# Load CSV file as a DataFrame
 def load_data_from_csv_as_df(input_file_path):
     return pd.read_csv(input_file_path, low_memory=False)
 
-
+# Generate all possible sequence patterns using A, T, G, C and wildcards ('.')
 def generate_all_patterns(length):
+
     bases = ['A', 'T', 'G', 'C', '.']
     patterns = []
     generate_patterns_recursive('', length, bases, patterns)
     return patterns
-
 
 def generate_patterns_recursive(current_seq, length, bases, patterns):
     if length == 0:
@@ -24,18 +28,14 @@ def generate_patterns_recursive(current_seq, length, bases, patterns):
         for base in bases:
             generate_patterns_recursive(current_seq + base, length - 1, bases, patterns)
 
+# Categorize patterns based on number of wildcards (dots)
 def find_patterns_according_to_the_number_of_points(length):
 
     all_patterns = generate_all_patterns(length)
     patterns_with_one_dot, patterns_with_two_dots, patterns_with_three_dots, patterns_with_four_dots = [], [], [], []
 
     for pattern in all_patterns:
-        dot_cnt = 0
-
-        for p in pattern:
-            if p == '.':
-                dot_cnt += 1
-
+        dot_cnt = pattern.count('.')
         if dot_cnt == 1:
             patterns_with_one_dot.append(pattern)
         elif dot_cnt == 2:
@@ -47,14 +47,12 @@ def find_patterns_according_to_the_number_of_points(length):
 
     return patterns_with_one_dot, patterns_with_two_dots, patterns_with_three_dots, patterns_with_four_dots
 
-
+# Scatter Plot actual vs. predicted FRET values through LASSO for 100 datapoints
 def plot_graph(sol, y_test, y_pred):
 
     y_pred = np.array(y_pred)
     y_test = np.array(y_test)
-
     sample_size = 100
-
     np.random.seed(42)
     indices = np.random.choice(len(y_test), size=sample_size, replace=False)
 
@@ -70,21 +68,15 @@ def plot_graph(sol, y_test, y_pred):
     plt.show()
 
 
-output_directory_path = r'C:\Users\chw10\2024BNEM\data'
-sol = ['N5', 'N50', 'N500', 'N5M10', 'N5M100']
-base = ['A', 'C', 'G', 'T']
-
-
-patterns_with_one_dot, patterns_with_two_dots, patterns_with_three_dots, patterns_with_four_dots = find_patterns_according_to_the_number_of_points(length=5)
-
+# Run Lasso regression for each dataset
 def lasso(sol, base):
-
-    pattern_with = patterns_with_four_dots
+    
+    # Generate 5-mer patterns with 4 wildcards
+    patterns_with_one_dot, patterns_with_two_dots, patterns_with_three_dots, patterns_with_four_dots = find_patterns_according_to_the_number_of_points(length=5)
+    pattern_with = patterns_with_one_dot  # Feature patterns to use
 
     for s in sol:
-
-        input_file_path = f'C:\\Users\\chw10\\2024BNEM\data\\data_{s}_pattern_with_four_dots.csv'
-        
+        input_file_path = f"data/data_{s}_pattern_with_one_dot.csv"
         df = load_data_from_csv_as_df(input_file_path)
 
         for b in base:
@@ -92,17 +84,19 @@ def lasso(sol, base):
                 X = df[pattern_with]
                 y = df[f'{s}_FRET']
 
+                # Drop rows with missing values
                 X_clean = X.dropna(axis=0)
                 y_clean = y[X.index.isin(X_clean.index)]
 
-        # Lasso Regression
+        # Train-test split
         X_train, X_test, y_train, y_test = train_test_split(X_clean, y_clean, test_size=0.2, random_state=42)
 
-        lasso = Lasso(alpha=0.001)  # alpha for controlling the degree of regularization
+        # Lasso regression
+        lasso = Lasso(alpha=0.001)
         lasso.fit(X_train, y_train)
-
         y_pred = lasso.predict(X_test)
 
+        # Evaluation metrics
         mae = mean_absolute_error(y_test, y_pred)
         mse = mean_squared_error(y_test, y_pred)
         rmse = np.sqrt(mse)
@@ -113,19 +107,23 @@ def lasso(sol, base):
         print(f'RMSE: {rmse}')
         print(f"R^2 score: {r2}")
 
+        # Print feature importance (non-zero coefficients)
+        feature_importance = sorted(
+            [(coef, feat) for coef, feat in zip(lasso.coef_, pattern_with) if coef != 0],
+            key=lambda x: abs(x[0]),
+            reverse=True
+        )
 
-
-        # # show coefficients
-        # #coef_abs = np.abs(lasso.coef_)
-        # feature_importance = sorted(zip(lasso.coef_, pattern_with), reverse=True)
-        #
-        # print(f'{s}')
-        # for importance, feature in feature_importance:
-        #     if importance != 0:
-        #         print(f"{feature}: {importance}")
-        # print('\n')
-
+        print(f"\n{s} - Non-zero Lasso Coefficients:")
+        for coef, feature in feature_importance:
+            print(f"{feature}: {coef:.5f}")
+        print('\n')
+        
+        # Scatter plot of predictions vs actual
         plot_graph(s, y_test, y_pred)
 
 
+output_directory_path = "data"
+
+# Apply LASSO
 lasso(sol, base)
