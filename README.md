@@ -24,10 +24,10 @@ The project aims to utilize AI model to analyze and predict FRET values based on
    
 # 1. Violin Strip plot
 
-   Data you need 
-      Features (X) : Boolean data of patterns with one dot 
-                        (e.g. .AAAA: True, .AAAC: False ...) 
-      FRET values (Y)
+      Data you need 
+         Features (X) :  Boolean data of patterns with one dot
+                           (e.g. AAAA.: True, AAAT.: False ... )
+         FRET values (Y)
 
    Generates violin & strip plots, showing FRET variation with a single base changes.
    ![violin_strip_N500_135](https://github.com/user-attachments/assets/2834caa4-4a4c-4d09-a82c-8effee41bb58)
