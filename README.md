@@ -66,6 +66,6 @@ The project aims to utilize AI model to analyze and predict FRET values based on
          whatever you think is important
          & FRET value (Y) 
 
-   - MLP : Dense(32) > Dense(1), Total params: 705\
-   - RNN : SimpleRNN(32) > Dense(1), Total params: 1217\
+   - MLP : Dense(32) -> Dense(1), Total params: 705
+   - RNN : SimpleRNN(32) -> Dense(1), Total params: 1217
    - XGBoost (Uses custom MAE objective + Hyperopt to tune hyperparameters)
